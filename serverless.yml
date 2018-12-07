@@ -1,0 +1,81 @@
+service: test-service
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  profile: default
+  stage: dev
+
+custom:
+  webpackIncludeModules: true
+  webpack:
+    webpackConfig: ./webpack.config.js
+    packager: 'yarn'   # Packager that will be used to package your external modules
+
+functions:
+  createUser:
+    handler: src/createUser.default
+    events:
+      - http:
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+          path: user
+          method: post
+  getUser:
+    handler: src/getUser.default
+    events:
+      - http:
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+          path: user/{userId}
+          method: get
+
+  updateEvents:
+    handler: src/updateEvents.default
+    events:
+      - http:
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+          path: user/{userId}/events
+          method: post
+
+  addGoal:
+    handler: src/addGoal.default
+    events:
+      - http:
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+          path: user/{userId}/goal
+          method: post
+
+  updateGoal:
+    handler: src/updateGoal.default
+    events:
+      - http:
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+          path: /user/{userId}/goal/{goalId}
+          method: put
+          
+  deleteGoal:
+    handler: src/deleteGoal.default
+    events:
+      - http:
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+          path: /user/{userId}/goal/{goalId}
+          method: delete
+
+  getConfig:
+    handler: src/getConfig.default
+    events:
+      - http:
+          method: get
+          path: config
+          authorizer:
+            arn: ${file(./secrets.json):aws-cognito}
+    
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
